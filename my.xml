@@ -1,0 +1,38 @@
+<? xml version="1.0" encoding="UTF-8" ?>
+<mapList>
+	<map id="zzc" name="ÖÐÖÝ³Ç">
+		<NPCList>
+			<NPC map="zzc" type="Talker" name="Ñ²²é¹Ù" id="10" x="90.60" y="0" z="62.90"/>
+			<NPC map="zzc" type="Talker" name="º®Ëª" id="11" x="69.60" y="1" z="54"/>
+		</NPCList>
+		<monsterList>
+		</monsterList>
+	</map>
+	<map id="kd1" name="¿ó¶´Ò»²ã">
+		<NPCList>
+			<NPC map="kd1" type="Talker" name="¿ó¶´¼à¾ü" id="46" x="105.50" y="2" z="55.60"/>
+			<NPC map="kd1" type="Talker" name="Îé³¤" id="47" x="107.50" y="3.30" z="4.40"/>
+		</NPCList>
+		<monsterList>
+			<monster map="kd1" type="common" name="¶´Çù" id="15" isboss="0"/>
+		</monsterList>
+	</map>
+	<map id="kd2" name="¿ó¶´¶þ²ã">
+		<NPCList>
+		</NPCList>
+		<monsterList>
+			<monster map="kd2" type="common" name="¶´Çù" id="15" isboss="0"/>
+			<monster map="kd2" type="common" name="±äÒìÖ©Öë" id="33" isboss="0"/>
+		</monsterList>
+	</map>
+	<map id="kd3" name="Ê¬Íõµî">
+		<NPCList>
+			<NPC map="kd3" type="Fighter" name="Î±×°µÄ½«¾ü" id="105" x="206.90" y="5" z="104.50"/>
+		</NPCList>
+		<monsterList>
+			<monster map="kd3" type="common" name="¶´Çù" id="15" isboss="0"/>
+			<monster map="kd3" type="common" name="±äÒìÖ©Öë" id="33" isboss="0"/>
+			<monster map="kd3" type="boss" name="Ê¬Íõ" id="100" isboss="1"/>
+		</monsterList>
+	</map>
+</mapList>
