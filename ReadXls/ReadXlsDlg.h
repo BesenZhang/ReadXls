@@ -59,6 +59,8 @@ protected:
 	char* __CString2Constchar(CString& strSrc);
 	void __CreateXmlFile(CString& strPath);
 	void __WriteItem(CStdioFile& obFile, size_t nID, CString strParentID);
+	void __CreateXmlFile2(CString& strPath);
+	CString __GetFileName(CString strPath);
 public:
 	afx_msg void OnBnClickedToxml();
 	// ÍË³ö³ÌÐò
@@ -75,6 +77,7 @@ public:
 private:
 	char* m_oldLocale;
 	Excel m_obExcel;
+	CString m_strInputName;
 	vector<CString> m_vecSheetName;
 	map<CString, vector<vector<CString>>> m_mapSheetList;
 };

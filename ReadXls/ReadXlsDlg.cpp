@@ -132,6 +132,7 @@ BOOL CReadXlsDlg::OnInitDialog()
 	}
 	m_oldLocale = _strdup(setlocale(LC_CTYPE, NULL));
 	setlocale(LC_CTYPE, "chs");//设定
+	m_strInputName = "";
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -284,7 +285,12 @@ void CReadXlsDlg::OnBnClickedToxml()
 	}
 	
 	//将m_mapSheetList内容写入xml文件
-	__CreateXmlFile(strOutputPath);
+
+	//第一种模式
+	//__CreateXmlFile(strOutputPath);
+
+	//第二种模式
+	__CreateXmlFile2(strOutputPath);
 	
 }
 
@@ -299,7 +305,7 @@ void CReadXlsDlg::OnBnClickedOpenfile()
 {
 	// TODO:  在此添加控件通知处理程序代码
 	// 设置过滤器   
-	TCHAR szFilter[] = _T("Microsoft Excel 97-2003 工作表(*.xls)|*.xls|Microsoft Excel 2007 工作表(*.xlsx)|*.xlsx|所有文件(*.*)|*.*||");
+	TCHAR szFilter[] = _T("Microsoft Excel 2007 工作表(*.xlsx)|*.xlsx|所有文件(*.*)|*.*||");
 	// 构造打开文件对话框   
 	CFileDialog fileDlg(TRUE, /*_T("xls")*/NULL, NULL, 0, szFilter, this);
 	CString strFilePath;
@@ -310,6 +316,8 @@ void CReadXlsDlg::OnBnClickedOpenfile()
 		// 如果点击了文件对话框上的“打开”按钮，则将选择的文件路径显示到编辑框里   
 		strFilePath = fileDlg.GetPathName();
 		SetDlgItemText(IDC_InputPath, strFilePath);
+
+		m_strInputName = __GetFileName(strFilePath);
 	}
 }
 
@@ -319,8 +327,19 @@ void CReadXlsDlg::OnBnClickedSavepath()
 	// TODO:  在此添加控件通知处理程序代码
 	// 设置过滤器   
 	TCHAR szFilter[] = _T("xml文件(*.xml)|*.xml|所有文件(*.*)|*.*||");
+	//默认输出文件名
+	CString strDefName;
+	if (0 == m_strInputName.GetLength())
+	{
+		strDefName = "my";
+	}
+	else
+	{
+		strDefName = m_strInputName;
+	}
+
 	// 构造保存文件对话框   
-	CFileDialog fileDlg(FALSE, _T("xml"), _T("my"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
+	CFileDialog fileDlg(FALSE, _T("xml"), strDefName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter, this);
 	CString strFilePath;
 
 	// 显示保存文件对话框   
@@ -349,7 +368,7 @@ void CReadXlsDlg::__CreateXmlFile(CString& strPath)
 	CStdioFile obFile;
 	if (obFile.Open(strPath, CStdioFile::modeCreate | CStdioFile::modeWrite))
 	{
-		CString strHead = _T("<? xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+		CString strHead = _T("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		obFile.WriteString(strHead);
 
 		CString strRoot = _T("<") + m_vecSheetName[0] + _T("List>\n");
@@ -406,4 +425,76 @@ void CReadXlsDlg::__WriteItem(CStdioFile& obFile, size_t nID, CString strParentI
 	}
 
 	obFile.WriteString(_T("\t\t</") + m_vecSheetName[nID] + _T("List>\n"));
+}
+
+void CReadXlsDlg::__CreateXmlFile2(CString& strPath)
+{
+	CString strFirstTag = __GetFileName(strPath);
+	CStdioFile obFile;
+	if (obFile.Open(strPath, CStdioFile::modeCreate | CStdioFile::modeWrite))
+	{
+		CString strHead = _T("<? xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+		obFile.WriteString(strHead);
+		CString strRoot = _T("<") + strFirstTag + _T(">\n");
+		CString strRootEnd = _T("</") + strFirstTag + _T(">\n");
+		obFile.WriteString(strRoot);
+
+		for (size_t si = 0; si < m_vecSheetName.size(); ++si)
+		{
+			vector<vector<CString>> vecContentList = m_mapSheetList[m_vecSheetName[si]];
+			CString strSheetRoot = _T("\t<") + m_vecSheetName[si] + _T(">\n");
+			CString strSheetRootEnd = _T("\t</") + m_vecSheetName[si] + _T(">\n");
+			if (vecContentList.size() > 3)
+			{
+				obFile.WriteString(strSheetRoot);
+			}
+			for (size_t i = 2; i < vecContentList.size(); ++i)
+			{
+				CString strItem;
+				if (vecContentList.size() > 3)
+				{
+					strItem = _T("\t\t<") + m_vecSheetName[si];
+				}
+				else
+				{	
+					strItem = _T("\t<") + m_vecSheetName[si];
+				}
+				for (size_t j = 0; j < vecContentList[i].size(); ++j)
+				{
+					strItem += _T(" ") + vecContentList[0][j] + _T("=\"") + vecContentList[i][j] + _T("\"");
+				}
+				strItem += _T("/>\n");
+				obFile.WriteString(strItem);
+			}
+			if (vecContentList.size() > 3)
+			{
+				obFile.WriteString(strSheetRootEnd);
+			}
+			//obFile.WriteString(_T("\n"));
+		}
+		obFile.WriteString(strRootEnd);
+
+		obFile.Close();
+		MessageBox(_T("生成成功"), _T("成功"), MB_OK);
+	}
+	else
+	{
+		MessageBox(_T("生成失败"), _T("失败"), MB_OK);
+	}
+}
+
+CString CReadXlsDlg::__GetFileName(CString strPath)
+{
+	vector<CString> vecItem;
+	int nCurPos = 0;
+	while (1)
+	{
+		CString resToken = strPath.Tokenize(_T("\\"), nCurPos);
+		if (resToken.IsEmpty()) break;
+		vecItem.push_back(resToken);
+	}
+	CString strFileName = vecItem[vecItem.size() - 1];
+	nCurPos = 0;
+	strFileName = strFileName.Tokenize(_T("."), nCurPos);
+	return strFileName;
 }
