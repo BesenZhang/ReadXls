@@ -80,4 +80,6 @@ private:
 	CString m_strInputName;
 	vector<CString> m_vecSheetName;
 	map<CString, vector<vector<CString>>> m_mapSheetList;
+public:
+	afx_msg void OnBnClickedToxml2();
 };

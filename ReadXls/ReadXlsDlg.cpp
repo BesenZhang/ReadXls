@@ -88,6 +88,7 @@ BEGIN_MESSAGE_MAP(CReadXlsDlg, CDialogEx)
 ON_BN_CLICKED(IDC_Exit, &CReadXlsDlg::OnBnClickedExit)
 ON_BN_CLICKED(IDC_OpenFile, &CReadXlsDlg::OnBnClickedOpenfile)
 ON_BN_CLICKED(IDC_SavePath, &CReadXlsDlg::OnBnClickedSavepath)
+ON_BN_CLICKED(IDC_ToXml2, &CReadXlsDlg::OnBnClickedToxml2)
 END_MESSAGE_MAP()
 
 
@@ -287,10 +288,10 @@ void CReadXlsDlg::OnBnClickedToxml()
 	//将m_mapSheetList内容写入xml文件
 
 	//第一种模式
-	//__CreateXmlFile(strOutputPath);
+	__CreateXmlFile(strOutputPath);
 
-	//第二种模式
-	__CreateXmlFile2(strOutputPath);
+// 	//第二种模式
+// 	__CreateXmlFile2(strOutputPath);
 	
 }
 
@@ -497,4 +498,64 @@ CString CReadXlsDlg::__GetFileName(CString strPath)
 	nCurPos = 0;
 	strFileName = strFileName.Tokenize(_T("."), nCurPos);
 	return strFileName;
+}
+
+void CReadXlsDlg::OnBnClickedToxml2()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	CString strInputFile;
+	CString strOutputPath;
+	m_editInputPath.GetWindowTextW(strInputFile);
+	m_editOutputPath.GetWindowTextW(strOutputPath);
+
+	if (0 == strInputFile.GetLength())
+	{
+		MessageBox(_T("请先选择需要读取的文件"), _T("错误"), MB_OK);
+		return;
+	}
+	if (0 == strOutputPath.GetLength())
+	{
+		MessageBox(_T("请先选择输出路径"), _T("错误"), MB_OK);
+		return;
+	}
+
+	if (!m_obExcel.open(__CString2Constchar(strInputFile)))
+	{
+		MessageBox(_T("无法打开该文件"), _T("错误"), MB_OK);
+		return;
+	}
+	int nSheetCount = m_obExcel.getSheetCount();
+
+	//将整个excel读入m_mapSheetList中
+	for (int s = 1; s <= nSheetCount; ++s)
+	{
+		CString strSheetName = m_obExcel.getSheetName(s);//获取sheet名
+		m_vecSheetName.push_back(strSheetName);
+		bool bLoad = m_obExcel.loadSheet(strSheetName);//装载sheet  
+		int nRow = m_obExcel.getRowCount();//获取sheet中行数
+		int nCol = m_obExcel.getColumnCount();//获取sheet中列数  
+
+
+		CString cell;
+		vector<vector<CString>> vecSheet;
+		for (int i = 1; i <= nRow; ++i)
+		{
+			vector<CString> vecRow;
+			for (int j = 1; j <= nCol; ++j)
+			{
+				cell = m_obExcel.getCellString(i, j);
+				vecRow.push_back(cell);
+			}
+			vecSheet.push_back(vecRow);
+		}
+		m_mapSheetList[strSheetName] = vecSheet;
+	}
+
+	//将m_mapSheetList内容写入xml文件
+
+// 	//第一种模式
+// 	__CreateXmlFile(strOutputPath);
+
+	//第二种模式
+	__CreateXmlFile2(strOutputPath);
 }
